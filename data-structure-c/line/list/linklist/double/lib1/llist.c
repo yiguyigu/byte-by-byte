@@ -112,16 +112,14 @@ void llist_travel(LLIST *ptr, llist_op *op)
     }
 }
 
-void llist_destroy(LLIST *handler)
+void llist_destroy(LLIST *ptr)
 {
-    if(handler == NULL)
-        return;
-    while(handler->head.next != &handler->head)
+    struct llist_node_st *cur, *next;
+    for(cur = ptr->head.next; cur != &ptr->head; cur = next)
     {
-        struct llist_node_st *cur = handler->head.next;
-        handler->head.next = cur->next;
-        cur->next->prev = &handler->head;
+        next = cur->next;
+        free(cur->data);
         free(cur);
     }
-    free(handler);
+    free(ptr);
 }
