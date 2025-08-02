@@ -13,7 +13,7 @@ static struct llist_node_st *find_(LLIST *prt, const void *key, llist_cmp *cmp)
             break;
     }
 
-    return cur; // The case where the item is not found is also considered, because if not found, cur will point to head, whose data field is NULL.
+    return cur;
 }
 
 LLIST *llist_create(int initsize)
@@ -23,7 +23,6 @@ LLIST *llist_create(int initsize)
     if(handler == NULL)
         return NULL;
     handler->size = initsize;
-    handler->head.data = NULL;
     handler->head.next = &handler->head;
     handler->head.prev = &handler->head;
 
@@ -34,14 +33,10 @@ int llist_insert(LLIST *ptr, const void *data, int mode)
 {
     struct llist_node_st *newnode;
 
-    newnode = malloc(sizeof(struct llist_node_st));
+    newnode = malloc(sizeof(*newnode) + ptr->size);
     if(newnode == NULL)
         return -1;
 
-    newnode->data = malloc(ptr->size);
-    if(newnode->data == NULL)
-        return -2;
-    
     memcpy(newnode->data, data, ptr->size);
 
     if(mode == LLIST_FORWARD)
@@ -67,7 +62,11 @@ int llist_insert(LLIST *ptr, const void *data, int mode)
 
 void *llist_find(LLIST *ptr, const void *key, llist_cmp *cmp)
 {
-    return find_(ptr, key, cmp)->data;
+    struct llist_node_st *node;
+    node = find_(ptr, key, cmp);
+    if(node == &ptr->head)
+        return NULL;
+    return node->data;
 }
 
 int llist_delete(LLIST *ptr, const void *key, llist_cmp *cmp)
@@ -79,7 +78,6 @@ int llist_delete(LLIST *ptr, const void *key, llist_cmp *cmp)
 
     node->prev->next = node->next;
     node->next->prev = node->prev;
-    free(node->data);
     free(node);
 
     return 0;
@@ -96,7 +94,6 @@ int llist_fetch(LLIST *ptr, const void *key, llist_cmp *cmp, void *data)
     if(data != NULL)
         memcpy(data, node->data, ptr->size);
     
-    free(node->data);
     free(node);
 
     return 0;
@@ -118,7 +115,6 @@ void llist_destroy(LLIST *ptr)
     for(cur = ptr->head.next; cur != &ptr->head; cur = next)
     {
         next = cur->next;
-        free(cur->data);
         free(cur);
     }
     free(ptr);

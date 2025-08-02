@@ -10,9 +10,9 @@ typedef int llist_cmp(const void *, void * record);
 
 struct llist_node_st
 {
-    void *data;
     struct llist_node_st *prev;
     struct llist_node_st *next;
+    char data[0]; // This is a flexible array member, in order to make the size of the struct variable flexible. C99 standard is required here; if not supported, you can use char data[1] and calculate the memory size when allocating.
 };
 
 typedef struct 
